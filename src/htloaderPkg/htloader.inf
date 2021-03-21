@@ -8,9 +8,8 @@ ENTRY_POINT             = UefiMain
 
 [Sources]
 bootinfo.h
-jump.S
-loader.c
-loader.h
+htloader.c
+htloader.h
 elf.c
 elf.h
 mem.c

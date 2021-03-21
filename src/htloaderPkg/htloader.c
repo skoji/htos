@@ -1,37 +1,6 @@
-#include "loader.h"
+#include "htloader.h"
 #include "bootinfo.h"
 #include "elf.h"
-
-void ___elf64_load_segment(char *file, Elf64_Phdr *phdr)
-{
-    Elf64_Word type = phdr->p_type;
-    Print(L"type: 0x%x\n", type);
-    //if ((type & PT_LOAD) == 0) {
-    if (type != PT_LOAD) {
-        Print(L"This segment is not PT_LOAD\n");
-        return;
-    }
-    Print(L"This segment is PT_LOAD\n");
-    uint64_t offset = phdr->p_offset;
-    Print(L"get offset: %ld\n", offset);
-    uint64_t filesz = phdr->p_filesz;
-    Print(L"get filesz: %ld\n", filesz);
-    uint64_t *vaddr = (uint64_t *)phdr->p_vaddr;
-    Print(L"get vaddr: %p\n", vaddr);
-    gBS->CopyMem(vaddr, (uint64_t *)(file + offset), filesz);
-    Print(L"[OK] copy PT_LOAD segment\n");
-}
-
-void _elf64_load_segments(char *file)
-{
-    Elf64_Ehdr *ehdr = (Elf64_Ehdr *)file;
-    uint64_t phnum = ehdr->e_phnum;
-    uint64_t phoff = ehdr->e_phoff;
-    for (int i = 0; i < phnum; i++) {
-        Elf64_Phdr *phdr = (Elf64_Phdr *)(file + phoff) + i;
-        ___elf64_load_segment(file, phdr);
-    }
-}
 
 void halt()
 {
@@ -127,7 +96,7 @@ UefiMain(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 
     // bodyをメモリに書き込む
     uint64_t *start_addr = KERNEL_START;
-    _elf64_load_segments((char *)kernel_program);
+    elf64_load_segments((char *)kernel_program);
 
     Print(L"[OK] copy kernel file to memory\n");
 

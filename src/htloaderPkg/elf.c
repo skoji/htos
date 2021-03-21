@@ -2,7 +2,7 @@
 #include "elf.h"
 #include "mem.h"
 
-void __elf64_load_segment(char *file, Elf64_Phdr *phdr)
+void elf64_load_segment(char *file, Elf64_Phdr *phdr)
 {
     Elf64_Word type = phdr->p_type;
     if (type != PT_LOAD) return;
@@ -18,7 +18,7 @@ void elf64_load_segments(char *file)
     int phnum = ehdr->e_phnum;
     uint64_t phoff = ehdr->e_phoff;
     for (int i = 0; i < phnum; i++) {
-        Elf64_Phdr *phdr = (Elf64_Phdr *)(file + phoff);
-        __elf64_load_segment(file, phdr);
+        Elf64_Phdr *phdr = (Elf64_Phdr *)(file + phoff) + i;
+        elf64_load_segment(file, phdr);
     }
 }

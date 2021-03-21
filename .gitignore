@@ -1,0 +1,5 @@
+/target
+Cargo.lock
+/mnt
+BOOTX64.EFI
+disk.img

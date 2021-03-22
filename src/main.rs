@@ -4,19 +4,20 @@
 use core::panic::PanicInfo;
 
 extern crate htos;
-use htos::boot_info::{BootInfo, Pixel};
+use htos::boot_info::BootInfo;
+use htos::graphics::{PixelWriter, PixelColor};
+use htos::fonts::write_font;
+
+extern "C" {
+    pub static mut fonts: [[u8; 16usize]; 256usize];
+}
 
 #[link_section = ".text.entry"]
 #[no_mangle]
 pub unsafe extern "C" fn kernel_entry(binfo: *mut BootInfo) -> ! {
-    for i in 0..(*binfo).vinfo.frame_buffer_size {
-        let frame_offset: *mut Pixel = (*binfo).vinfo.frame_buffer_base.offset(i as isize);
-        let pixel = Pixel {
-            rgb: [0x00, 0xff, 0x00],
-            _rsvd: 0,
-        };
-        *frame_offset = pixel;
-    }
+    let pixel_writer = PixelWriter { video_info: &mut (*binfo).vinfo };
+    pixel_writer.write_background(PixelColor::Black);
+    write_font(0, 0, 'c', &pixel_writer);
     loop {}
 }
 

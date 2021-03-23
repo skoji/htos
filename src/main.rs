@@ -23,12 +23,14 @@ pub unsafe extern "C" fn kernel_entry(binfo: *mut BootInfo) -> ! {
         screen_buffer: [[0; 80]; 40],
         buffer_line_tail_index: 0,
         pixel_writer: &pixel_writer,
+        screen_line: 1,
+        total_line: 1,
     };
-    console.put_string("Hello, Rust");
-    console.put_string("Hello, Rust");
-    console.put_string("Hello, Rust");
-    console.put_string("Hello, Rust");
-    console.put_string("Hello, Rust");
+    console.put_string("Hello");
+    console.put_string("Hyper");
+    console.put_string("Toy");
+    console.put_string("OS");
+    console.put_string("!!!!!");
     loop {}
 }
 

@@ -1,4 +1,21 @@
+//use core::mem::replace;
+
 use crate::boot_info::{VideoInfo, Pixel};
+
+//struct Graphics {
+//    pixel_writer: Option<PixelWriter>,
+//}
+//
+//impl Graphics {
+//    fn take_pixel_writer(&mut self) -> PixelWriter {
+//        let p = replace(&mut self.pixel_writer, None);
+//        p.unwrap()
+//    }
+//}
+//
+//static mut GRAPHICS: Graphics = Graphics {
+//    pixel_writer: Some(PixelWriter)
+//};
 
 pub enum PixelColor {
     Black,

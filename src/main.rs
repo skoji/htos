@@ -6,7 +6,7 @@ use core::panic::PanicInfo;
 extern crate htos;
 use htos::boot_info::BootInfo;
 use htos::graphics::{PixelWriter, PixelColor};
-use htos::console::Console;
+use htos::console::{Console, LINE_NUMBER, CHAR_NUMBER_IN_A_LINE};
 
 extern "C" {
     pub static mut fonts: [[u8; 16usize]; 256usize];
@@ -20,7 +20,7 @@ pub extern "C" fn kernel_entry(binfo: *mut BootInfo) -> ! {
     let mut console = Console {
         current_position_x: 0,
         current_position_y: 0,
-        screen_buffer: [[0; 80]; 40],
+        screen_buffer: [[0; CHAR_NUMBER_IN_A_LINE]; LINE_NUMBER],
         buffer_line_tail_index: 0,
         pixel_writer: &pixel_writer,
         screen_line: 1,

@@ -21,11 +21,3 @@ pub fn write_byte(x: usize, y: usize, character: u8, writer: &PixelWriter) {
         }
     }
 }
-
-pub fn write_string(x: usize, y: usize, s: &str, writer: &PixelWriter) {
-    let mut dx = 0;
-    for i in 0..s.len() {
-        write_byte(x + dx, y, s.as_bytes()[i], writer);
-        dx += 8;
-    }
-}

@@ -1,55 +1,71 @@
-use crate::graphics::PixelWriter;
-use crate::fonts::{write_string, write_byte};
+use crate::graphics::{PixelWriter, PixelColor};
+use crate::fonts::write_byte;
 
-pub const LINE_NUMBER: usize = 25;
-pub const CHAR_NUMBER_IN_A_LINE: usize = 80;
+// 画面サイズ 80x25
+pub const ROW_NUMBER: usize = 25;
+pub const COLUNM_NUMBER: usize = 80;
 
 pub struct Console<'a> {
-    pub current_position_x: usize,
-    pub current_position_y: usize,
-    pub screen_buffer: [[u8; CHAR_NUMBER_IN_A_LINE]; LINE_NUMBER],
-    pub buffer_line_tail_index: usize,
-    pub pixel_writer: &'a PixelWriter,
-    pub screen_line: usize,
-    pub total_line: usize,
+    pub position_x: usize, // 横のカーソル位置
+    pub position_y: usize, // 縦のカーソル位置
+    pub screen_buffer: [u8; COLUNM_NUMBER * ROW_NUMBER], // スクリーンバッファ
+    pub data_head: usize, // バッファ上の一番最初のデータがあるインデックス
+    pub data_len: usize, // バッファにあるデータの長さ
+    pub pixel_writer: &'a PixelWriter, // 画面描画構造体
 }
 
 impl<'a> Console<'a> {
-    fn write_screen_buffer(&mut self, s: &str) {
-        for i in 0..s.len() {
-            if i != 0 && i % CHAR_NUMBER_IN_A_LINE == 0 {
-                self.buffer_line_tail_index = (self.buffer_line_tail_index + 1) % CHAR_NUMBER_IN_A_LINE;
-            }
-            self.screen_buffer[self.buffer_line_tail_index][i % CHAR_NUMBER_IN_A_LINE] = s.as_bytes()[i];
+    // バッファに1文字格納するメソッド
+    fn set_screen_buffer(&mut self, c: u8) {
+        if self.data_len < COLUNM_NUMBER * ROW_NUMBER {
+            // データがバッファからあふれていない場合
+            self.screen_buffer[self.data_head + self.data_len] = c;
+            self.data_len += 1;
+        } else {
+            // データがいっぱいになった場合
+            self.screen_buffer[(self.data_head + self.data_len) % (COLUNM_NUMBER + ROW_NUMBER)] = c;
+            self.data_head = (self.data_head + 1) % (COLUNM_NUMBER + ROW_NUMBER);
         }
-        self.buffer_line_tail_index = (self.buffer_line_tail_index + 1) % CHAR_NUMBER_IN_A_LINE;
     }
 
     fn newline(&mut self) {
-        self.total_line += 1;
-        self.current_position_x = 0;
-        if self.screen_line < LINE_NUMBER {
-            self.current_position_y += 16;
-            self.screen_line += 1;
+        self.position_x = 0;
+        if self.position_y + 1 < ROW_NUMBER {
+            self.position_y += 1;
+        } else {
+            // 画面を黒で塗りつぶす
+            for y in 0..(ROW_NUMBER * 16) {
+                for x in 0..(COLUNM_NUMBER * 8) {
+                    self.pixel_writer.write(x, y, &PixelColor::Black);
+                }
+            }
+            // TODO: 文字を書き直す
         }
     }
 
-    fn write_line(&self, s: &str, line_number: usize) {
-        write_string(0, line_number * 16, s, self.pixel_writer);
+    fn put_char(&mut self, c: u8) {
+        if c == b'\n' {
+            self.newline();
+        } else {
+            write_byte(self.position_x * 8, self.position_y * 16, c, self.pixel_writer);
+            if self.position_x + 1 < COLUNM_NUMBER {
+                self.position_x += 1;
+            } else {
+                self.newline();
+            }
+        }
+    }
+
+    // 1文字画面に出力するメソッド
+    pub fn put(&mut self, c: u8) {
+        self.set_screen_buffer(c);
+        self.put_char(self.screen_buffer[self.data_head + self.data_len - 1]);
     }
 
     // 一行画面に出力する関数
-    pub fn put_string(&mut self, s: &str) {
-        self.write_screen_buffer(s); // バッファに格納
-
-        // 描画部分
-        for i in 0..self.screen_line {
-            if self.screen_line < LINE_NUMBER {
-                self.write_line(core::str::from_utf8(&self.screen_buffer[i]).unwrap(), i);
-            } else {
-                self.write_line(core::str::from_utf8(&self.screen_buffer[(i + self.buffer_line_tail_index) % LINE_NUMBER]).unwrap(), i);
-            }
-            self.newline();
+    pub fn puts(&mut self, s: &str) {
+        for i in 0..s.len() {
+            self.put(s.as_bytes()[i]);
         }
     }
 }

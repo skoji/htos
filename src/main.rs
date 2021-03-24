@@ -3,14 +3,9 @@
 
 use core::panic::PanicInfo;
 
-extern crate htos;
 use htos::boot_info::BootInfo;
 use htos::graphics::{PixelWriter, PixelColor};
 use htos::console::{Console, ROW_NUMBER, COLUNM_NUMBER};
-
-extern "C" {
-    pub static mut fonts: [[u8; 16usize]; 256usize];
-}
 
 #[link_section = ".text.entry"]
 #[no_mangle]
